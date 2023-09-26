@@ -1,0 +1,9 @@
+services:
+  deeplearning:
+    platform: linux/amd64
+    image: pytorch-hello-world
+    user: "mattfeng"
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/app
