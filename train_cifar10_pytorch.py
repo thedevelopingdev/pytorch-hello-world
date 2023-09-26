@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+import argparse
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -9,33 +12,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from tqdm import tqdm
+from resnet import ResNet50
 
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
-def main():
+def main(device):
     # load data
     transform = transforms.Compose(
         [transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    batch_size = 4
+    batch_size = 128
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
@@ -51,11 +36,15 @@ def main():
             'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
     # initialize a neural network
-    net = Net()
+    net = ResNet50()
+    net = net.to(device)
 
     # define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+    INSTANCES_PER_PRINT_STATS = 8000
+    print_interval = int(INSTANCES_PER_PRINT_STATS / batch_size)
 
     # train
     for epoch in range(10):  # loop over the dataset multiple times
@@ -63,6 +52,8 @@ def main():
         for i, data in tqdm(enumerate(trainloader, 0)):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -75,13 +66,25 @@ def main():
 
             # print statistics
             running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+            if i % print_interval == print_interval - 1:    # print every 8000 instances
+                print(f'[{epoch + 1}, minibatch {i + 1:5d}] loss: {running_loss / print_interval:.3f}')
                 running_loss = 0.0
 
     print('Finished Training')
 
 
+def get_default_device():
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--device",
+                        default=get_default_device())
+    args = parser.parse_args()
+
+    print(f"Using device: {args.device}")
+
+    main(device=args.device)

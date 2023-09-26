@@ -3,6 +3,13 @@ services:
     platform: linux/amd64
     image: pytorch-hello-world
     user: "mattfeng"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     ports:
       - 8080:8080
     volumes:
