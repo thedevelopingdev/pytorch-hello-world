@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+"""
+Trains a ResNet50 model on the CIFAR10 data set.
+
+source(s): 
+1. https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+"""
+
 import argparse
 
 import torch
