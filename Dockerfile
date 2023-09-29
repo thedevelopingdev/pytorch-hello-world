@@ -39,5 +39,6 @@ USER mattfeng
 WORKDIR /app
 
 RUN pip install torch torchvision torchaudio
+RUN pip install lightning deepspeed
 
 ENTRYPOINT ["sleep", "infinity"]

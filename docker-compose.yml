@@ -1,16 +1,16 @@
 services:
   deeplearning:
     platform: linux/amd64
-    image: pytorch-hello-world
+    image: deeplearning:1.0.0
     user: "mattfeng"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
     ports:
-      - 8080:8080
+      - 8888:8888
     volumes:
       - ./:/app
