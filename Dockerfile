@@ -2,16 +2,20 @@
 # https://fabiorosado.dev/blog/install-conda-in-docker/
 # https://nielscautaerts.xyz/making-dockerfiles-architecture-independent.html
 # https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=11.7
+# https://hub.docker.com/r/nvidia/cuda/tags
+# https://aws.amazon.com/releasenotes/aws-deep-learning-ami-gpu-pytorch-2-0-ubuntu-20-04/
 
-FROM nvidia/cuda:11.7.1-devel-ubuntu22.04
+FROM nvidia/cuda:12.1.1-devel-ubuntu20.04
 
 ARG TARGETPLATFORM
 
 # Install base utilities
 RUN apt-get update \
     && apt-get install -y build-essential \
-    && apt-get install -y wget \
+    && apt-get install -y wget curl \
     && apt-get install -y sudo \
+    && apt-get install -y tmux vim \
+    && apt-get install -y git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -38,7 +42,10 @@ RUN chown -R mattfeng:mattfeng /opt/conda
 USER mattfeng
 WORKDIR /app
 
-RUN pip install torch torchvision torchaudio
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip install torch_geometric
+RUN pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cu121.html
 RUN pip install lightning deepspeed
+RUN pip install jupyter
 
 ENTRYPOINT ["sleep", "infinity"]
